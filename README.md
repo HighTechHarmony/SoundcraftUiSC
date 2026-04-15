@@ -9,7 +9,7 @@
 
 The official Soundcraft Ui24R JSON snapshot export format is very hard to understand and work with; thus, manually editing mixer snapshots from code can be extremely uncomfortable. This Python script lets you convert snapshots exported from the mixer Web UI to other more human-readable formats and vice versa. It can read/write both _JSON_ and _YAML_ documents.
 
-> **Note**: this project is specific for **Soundcraft JSON snapshot format**, a.k.a. "_Offline Files_". It does not handle `.uisnapshot` files.
+> **Note**: this project handles both the **Soundcraft JSON snapshot format** (a.k.a. "_Offline Files_") and the **`.uisnapshot` / `.uishow` files** used on USB show exports.
 
 > **Important**: this has been tested with the firmware version **3.3.8293-ui24**.
 
@@ -38,6 +38,94 @@ python3 -mui24rsc dots,full human-friendly.yml official.json
 ```
 
 For more details on how to use this command, you can also refer to its help message (`--help`).
+
+## Working with USB show exports (`.uisnapshot`)
+
+The Soundcraft Ui24R can also export shows to a USB drive. Each snapshot is
+stored as a `.uisnapshot` file — a plain-text `key=value` format with an MD5
+checksum footer — inside a folder hierarchy like:
+
+```
+Exports/
+  shows/
+    My Show/
+      Snapshot A.uisnapshot
+      Snapshot B.uisnapshot
+      .uishow
+```
+
+This tool can convert between this format and the familiar offline JSON format
+in both single-file and batch (tree) modes.
+
+### Single-file conversion
+
+Convert a `.uisnapshot` file to a flat JSON dots file:
+
+```bash
+python3 -mui24rsc fromuisnapshot snapshot.uisnapshot snapshot.json
+```
+
+Convert a flat JSON dots file back to a `.uisnapshot` file (MD5 checksum is
+computed and appended automatically):
+
+```bash
+python3 -mui24rsc touisnapshot snapshot.json snapshot.uisnapshot
+```
+
+You can also chain these with other actions. For example, to convert a
+`.uisnapshot` directly to a human-readable YAML diff:
+
+```bash
+python3 -mui24rsc fromuisnapshot,diff,tree snapshot.uisnapshot human-friendly.yml
+```
+
+### Batch tree conversion
+
+The `convert-tree` subcommand converts an entire folder of offline JSON
+snapshots to the USB export tree structure, or vice versa.
+
+**Offline JSON → USB uisnapshot tree:**
+
+```bash
+python3 -mui24rsc convert-tree json2snap /path/to/offline/exports /path/to/usb
+```
+
+This will create the following structure under `/path/to/usb`:
+
+```
+Exports/
+  shows/
+    S%26S Gigs/           ← show folder name is percent-encoded
+      My Snapshot.uisnapshot
+      .uishow             ← generated automatically (see below)
+```
+
+Any character that is hazardous in a file path (e.g. `&`) is
+percent-encoded in the output folder/file names. Spaces are kept as-is to
+match the device's own naming convention.
+
+**USB uisnapshot tree → offline JSON:**
+
+```bash
+python3 -mui24rsc convert-tree snap2json /path/to/usb /path/to/offline/exports
+```
+
+Percent-encoded folder and file names are decoded back to their original form
+in the output.
+
+### `.uishow` files
+
+Each show directory on the USB drive contains a `.uishow` file that stores
+per-show metadata (channel isolation groups, VCA groups, safe/mgmask
+flags per channel).
+
+When running `convert-tree json2snap`, a default `.uishow` file is generated
+automatically for each show. It sets all `safe` and `mgmask` values to `0`
+and leaves iso/VG group fields empty.
+
+> **Note**: if a `.uishow` file already exists in the destination, it will
+> **not** be overwritten. This lets you customise the file once and keep your
+> changes across repeated conversions.
 
 ## Development
 
