@@ -1,8 +1,8 @@
 /venv/
 
-/ui24rsc/__pycache__/
+/soundcraftuisc/__pycache__/
 /test/__pycache__/
-
+/__pycache__/
 /build/
 /dist/
 
