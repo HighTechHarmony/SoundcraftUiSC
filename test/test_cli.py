@@ -5,7 +5,7 @@ import json
 import os
 import tempfile
 
-import ui24rsc
+import soundcraftuisc
 
 from util import pfmt
 
@@ -29,12 +29,12 @@ _EXAMPLE_JSON = os.path.join(
 
 
 def test_obj2diff() -> None:
-    equal, objdiff = ui24rsc.obj2diff({}, {})
+    equal, objdiff = soundcraftuisc.obj2diff({}, {})
 
     assert equal
     assert pfmt(objdiff) == '{}'
 
-    equal, objdiff = ui24rsc.obj2diff(
+    equal, objdiff = soundcraftuisc.obj2diff(
         {
             'baz': 123,
             'foo': 'XYZ',
@@ -58,11 +58,11 @@ def test_obj2diff() -> None:
 
 
 def test_obj2full() -> None:
-    objfull = ui24rsc.obj2full({}, {})
+    objfull = soundcraftuisc.obj2full({}, {})
 
     assert pfmt(objfull) == '{}'
 
-    objfull = ui24rsc.obj2full(
+    objfull = soundcraftuisc.obj2full(
         {
             'foo': 'XYZ',
             'sub01': {'ho': 3},
@@ -85,11 +85,11 @@ def test_obj2full() -> None:
 
 
 def test_obj2tree() -> None:
-    objtree = ui24rsc.obj2tree({})
+    objtree = soundcraftuisc.obj2tree({})
 
     assert pfmt(objtree) == '{}'
 
-    objtree = ui24rsc.obj2tree(
+    objtree = soundcraftuisc.obj2tree(
         {'one.two.three': 3, 'one.two.six': 6, 'one.seven': 7})
 
     assert pfmt(objtree) == pfmt(
@@ -97,11 +97,11 @@ def test_obj2tree() -> None:
 
 
 def test_obj2dots() -> None:
-    objdots = ui24rsc.obj2dots({})
+    objdots = soundcraftuisc.obj2dots({})
 
     assert pfmt(objdots) == '{}'
 
-    objdots = ui24rsc.obj2dots(
+    objdots = soundcraftuisc.obj2dots(
         {'one': {'two': {'three': 3, 'six': 6}, 'seven': 7}})
 
     assert pfmt(objdots) == pfmt({
@@ -112,11 +112,11 @@ def test_obj2dots() -> None:
 
 
 def test_obj2sort() -> None:
-    obj = ui24rsc.objsort({})
+    obj = soundcraftuisc.objsort({})
 
     assert pfmt(obj) == '{}'
 
-    obj = ui24rsc.objsort(
+    obj = soundcraftuisc.objsort(
         {
             'b': 123,
             'a': 456,
@@ -147,7 +147,7 @@ def test_uisnapshot2dots_basic() -> None:
         'i.0.name=Kick\n'
         '##MD5: AABBCCDD\n'
     )
-    dots = ui24rsc.uisnapshot2dots(text)
+    dots = soundcraftuisc.uisnapshot2dots(text)
     assert dots == {'i.0.mute': 1, 'i.0.gain': 0.5, 'i.0.name': 'Kick'}
     # MD5 footer and comment must not appear in result
     assert '##MD5' not in dots
@@ -156,7 +156,7 @@ def test_uisnapshot2dots_basic() -> None:
 
 def test_uisnapshot2dots_types() -> None:
     text = 'a=0\nb=3.14\nc=hello\nd=1\n##MD5: X\n'
-    d = ui24rsc.uisnapshot2dots(text)
+    d = soundcraftuisc.uisnapshot2dots(text)
     assert d['a'] == 0 and isinstance(d['a'], int)
     assert d['b'] == 3.14 and isinstance(d['b'], float)
     assert d['c'] == 'hello' and isinstance(d['c'], str)
@@ -165,7 +165,7 @@ def test_uisnapshot2dots_types() -> None:
 
 def test_dots2uisnapshot_md5() -> None:
     dots = {'i.0.mute': 1, 'i.0.gain': 0.75}
-    text = ui24rsc.dots2uisnapshot(dots)
+    text = soundcraftuisc.dots2uisnapshot(dots)
     # Must end with ##MD5: line
     lines = text.splitlines()
     assert lines[-1].startswith('##MD5: ')
@@ -178,7 +178,7 @@ def test_dots2uisnapshot_md5() -> None:
 
 def test_dots2uisnapshot_excludes_LOCAL() -> None:
     dots = {'i.0.mute': 0, 'LOCAL.foo': 'bar', 'LOCAL': 'baz'}
-    text = ui24rsc.dots2uisnapshot(dots)
+    text = soundcraftuisc.dots2uisnapshot(dots)
     assert 'LOCAL' not in text.split('##MD5:')[0]
 
 
@@ -188,8 +188,8 @@ def test_uisnapshot_roundtrip() -> None:
         return  # skip if example file absent
     with open(_EXAMPLE_SNAP, 'r', encoding='utf-8') as f:
         original = f.read()
-    dots = ui24rsc.uisnapshot2dots(original)
-    regenerated = ui24rsc.dots2uisnapshot(dots)
+    dots = soundcraftuisc.uisnapshot2dots(original)
+    regenerated = soundcraftuisc.dots2uisnapshot(dots)
     lines = regenerated.splitlines()
     assert lines[-1].startswith('##MD5: ')
     md5_val = lines[-1].split(' ', 1)[1]
@@ -198,12 +198,12 @@ def test_uisnapshot_roundtrip() -> None:
 
 
 def test_encode_decode_name() -> None:
-    assert ui24rsc._encode_name('S&S Gigs') == 'S%26S Gigs'
-    assert ui24rsc._decode_name('S%26S Gigs') == 'S&S Gigs'
+    assert soundcraftuisc._encode_name('S&S Gigs') == 'S%26S Gigs'
+    assert soundcraftuisc._decode_name('S%26S Gigs') == 'S&S Gigs'
     # Round-trip identity
-    assert ui24rsc._decode_name(ui24rsc._encode_name('S&S Gigs')) == 'S&S Gigs'
+    assert soundcraftuisc._decode_name(soundcraftuisc._encode_name('S&S Gigs')) == 'S&S Gigs'
     # Spaces are kept literal
-    assert ' ' in ui24rsc._encode_name('My Show')
+    assert ' ' in soundcraftuisc._encode_name('My Show')
 
 
 def test_convert_tree_json2snap(tmp_path) -> None:
@@ -216,7 +216,7 @@ def test_convert_tree_json2snap(tmp_path) -> None:
         json.dump(dots, f)
 
     dst = tmp_path / 'dst'
-    ui24rsc.convert_tree(tmp_path, dst, direction='json2snap')
+    soundcraftuisc.convert_tree(tmp_path, dst, direction='json2snap')
 
     expected_snap = dst / 'Exports' / 'shows' / 'S%26S Gigs' / 'MySnap.uisnapshot'
     assert expected_snap.exists(), f'Expected {expected_snap}'
@@ -236,11 +236,11 @@ def test_convert_tree_snap2json(tmp_path) -> None:
     snap_dir = tmp_path / 'Exports' / 'shows' / 'S%26S Gigs'
     snap_dir.mkdir(parents=True)
     dots_in = {'i.0.mute': 1, 'i.1.gain': 0.5}
-    snap_text = ui24rsc.dots2uisnapshot(dots_in)
+    snap_text = soundcraftuisc.dots2uisnapshot(dots_in)
     (snap_dir / 'MySnap.uisnapshot').write_text(snap_text, encoding='utf-8')
 
     dst = tmp_path / 'json_out'
-    ui24rsc.convert_tree(tmp_path, dst, direction='snap2json')
+    soundcraftuisc.convert_tree(tmp_path, dst, direction='snap2json')
 
     out_file = dst / 'S&S Gigs' / 'MySnap.json'
     assert out_file.exists(), f'Expected {out_file}'
@@ -262,7 +262,7 @@ def test_uishow_not_overwritten(tmp_path) -> None:
     uishow_path.parent.mkdir(parents=True, exist_ok=True)
     uishow_path.write_text(sentinel, encoding='utf-8')
 
-    ui24rsc.convert_tree(tmp_path, dst, direction='json2snap')
+    soundcraftuisc.convert_tree(tmp_path, dst, direction='json2snap')
 
     assert uishow_path.read_text(encoding='utf-8') == sentinel
 

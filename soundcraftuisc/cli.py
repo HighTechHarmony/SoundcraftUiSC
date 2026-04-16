@@ -376,7 +376,7 @@ def convert_tree(src_root: str | Path, dst_root: str | Path,
 
 def _main_convert_tree(argv: list[str]) -> int:
     parser = argparse.ArgumentParser(
-        prog='ui24rsc convert-tree',
+        prog='soundcraftuisc convert-tree',
         description='Batch-convert between offline JSON export tree and USB '
         'uisnapshot tree'
     )
