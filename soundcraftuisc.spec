@@ -3,7 +3,7 @@
 # Build with:  pyinstaller soundcraftuisc.spec
 
 a = Analysis(
-    ['soundcraftuisc/__main__.py'],
+    ['soundcraftuisc/_entry.py'],
     pathex=[],
     binaries=[],
     # Bundle default-init.yml into the same sub-directory as cli.py so that

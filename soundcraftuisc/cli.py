@@ -375,10 +375,24 @@ def convert_tree(src_root: str | Path, dst_root: str | Path,
 # ---------------------------------------------------------------------------
 
 def _main_convert_tree(argv: list[str]) -> int:
-    parser = argparse.ArgumentParser(
+    class HelpOnErrorParser(argparse.ArgumentParser):
+        def error(self, message):
+            self.print_help(sys.stderr)
+            self.exit(2, f'\nerror: {message}\n')
+
+    parser = HelpOnErrorParser(
         prog='soundcraftuisc convert-tree',
         description='Batch-convert between offline JSON export tree and USB '
-        'uisnapshot tree'
+        'uisnapshot tree',
+        formatter_class=argparse.RawTextHelpFormatter,
+        epilog=(
+            'Examples:\n'
+            '  Offline JSON exports → USB .uisnapshot tree:\n'
+            '    soundcraftuisc convert-tree json2snap /path/to/offline/exports /path/to/usb\n'
+            '\n'
+            '  USB .uisnapshot tree → offline JSON exports:\n'
+            '    soundcraftuisc convert-tree snap2json /path/to/usb /path/to/offline/exports\n'
+        ),
     )
     parser.add_argument(
         'direction',
@@ -405,15 +419,47 @@ def main(argv: list[str] | None = None) -> int:
     if len(argv) > 1 and argv[1] == 'convert-tree':
         return _main_convert_tree(argv)
 
-    parser = argparse.ArgumentParser(
+    class HelpOnErrorParser(argparse.ArgumentParser):
+        def error(self, message):
+            self.print_help(sys.stderr)
+            self.exit(2, f'\nerror: {message}\n')
+
+    parser = HelpOnErrorParser(
         description='Converts a Soundcraft Ui24R snapshot file from/to '
-        'different formats'
+        'different formats',
+        formatter_class=argparse.RawTextHelpFormatter,
+        epilog=(
+            'Batch tree conversion (convert-tree subcommand):\n'
+            '  Convert an entire offline JSON export folder to a USB .uisnapshot tree:\n'
+            '    soundcraftuisc convert-tree json2snap /path/to/offline/exports /path/to/usb\n'
+            '\n'
+            '  Convert a USB .uisnapshot tree back to offline JSON exports:\n'
+            '    soundcraftuisc convert-tree snap2json /path/to/usb /path/to/offline/exports\n'
+            '\n'
+            '  Run "soundcraftuisc convert-tree --help" for full details.\n'
+        ),
     )
 
     parser.add_argument('actions', metavar='ACTIONS', type=str,
-                        help='Comma-separated sequence of operations to be '
-                        'performed. Examples: "diff,tree" "dots,full" '
-                        '"tree,sort"')
+                        help=(
+                            'Comma-separated sequence of operations to be '
+                            'performed. Examples: "diff,tree" "dots,full" '
+                            '"tree,sort"\n\n'
+                            'Available actions:\n'
+                            '  diff           Full snapshot → diff vs. '
+                            'default init (output: YAML)\n'
+                            '  full           Diff → full Soundcraft dots '
+                            'format (output: JSON)\n'
+                            '  tree           Dotted flat dict → nested tree '
+                            '(output: YAML)\n'
+                            '  dots           Nested tree → dotted flat dict '
+                            '(output: JSON)\n'
+                            '  sort           Recursively sort object keys\n'
+                            '  fromuisnapshot .uisnapshot text → dots dict '
+                            '(reads raw text input)\n'
+                            '  touisnapshot   Dots dict → .uisnapshot text '
+                            '(writes raw text output)\n'
+                        ))
     parser.add_argument('file_in', metavar='FILE_IN', type=str,
                         nargs='?', default='-',
                         help='Input file. If set to "-" then stdin is used '

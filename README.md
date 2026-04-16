@@ -207,9 +207,11 @@ diff <(jq --sort-keys < snapshot01.json) <(python3 -msoundcraftuisc dots,full sn
 
 ---
 
-## Todo
+## Todo / Roadmap
 
-Get PyPI packaging working.
+- Get PyPI packaging working.
+- Library manager (browse, archive, store and retrieve selected snapshots to/from a database and direct at a USB stick for machine transfer)
+- Support and test w/ other mixers in the Ui series (currenty only Ui24R)
 
 ---
 
